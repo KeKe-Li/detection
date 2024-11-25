@@ -1,0 +1,4 @@
+pub const MEMORY_WARNING_THRESHOLD: f64 = 80.0;
+pub const MEMORY_CRITICAL_THRESHOLD: f64 = 90.0;
+pub const UPDATE_INTERVAL: u64 = 2;
+pub const BYTES_TO_GB: f64 = 1024.0 * 1024.0; 
