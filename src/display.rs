@@ -8,6 +8,33 @@ use crate::utils::format_bytes;
 use crate::monitor::SystemMetrics;
 use crate::config::{MEMORY_WARNING_THRESHOLD, MEMORY_CRITICAL_THRESHOLD};
 
+#[derive(Debug)]
+enum UsageColor {
+    Critical,
+    Warning,
+    Normal,
+}
+
+impl From<f64> for UsageColor {
+    fn from(percentage: f64) -> Self {
+        match percentage {
+            p if p >= MEMORY_CRITICAL_THRESHOLD => Self::Critical,
+            p if p >= MEMORY_WARNING_THRESHOLD => Self::Warning,
+            _ => Self::Normal,
+        }
+    }
+}
+
+impl From<UsageColor> for Color {
+    fn from(usage_color: UsageColor) -> Self {
+        match usage_color {
+            UsageColor::Critical => Color::Red,
+            UsageColor::Warning => Color::Yellow,
+            UsageColor::Normal => Color::Green,
+        }
+    }
+}
+
 pub fn print_memory_bar(percentage: f64, width: usize) {
     let filled_width = ((percentage / 100.0) * width as f64) as usize;
     let bar: String = format!(
@@ -17,11 +44,7 @@ pub fn print_memory_bar(percentage: f64, width: usize) {
         percentage
     );
     
-    let color = match percentage {
-        p if p >= MEMORY_CRITICAL_THRESHOLD => Color::Red,
-        p if p >= MEMORY_WARNING_THRESHOLD => Color::Yellow,
-        _ => Color::Green,
-    };
+    let color: Color = UsageColor::from(percentage).into();
     
     let mut handle = stdout();
     let _ = handle.execute(SetForegroundColor(color));
