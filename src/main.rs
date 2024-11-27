@@ -17,7 +17,7 @@ use memory_monitor::{
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    logger::setup_logger()?;
+    logger::setup_logger(None, None)?;
     let mut sys = System::new_all();
     
     info!("Start monitoring system resources...");    
