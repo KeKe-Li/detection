@@ -1,4 +1,6 @@
 .idea
 target/
 test/
-
+/logs/
+*.log
+*.gz
