@@ -54,11 +54,40 @@ pub fn get_system_metrics(sys: &System) -> SystemMetrics {
         load_average: sys.load_average(),
     }
 }
-
+#[derive(Debug)]
 pub struct SystemMetrics {
     pub cpu_usage: f32,
     pub total_memory: u64,
     pub used_memory: u64,
     pub available_memory: u64,
     pub load_average: sysinfo::LoadAvg,
+}
+
+#[derive(Debug)]
+pub struct DetailedMetrics {
+    pub basic: SystemMetrics,
+    pub network: NetworkMetrics,
+    pub processes: Vec<ProcessMetrics>,
+    pub temperatures: Vec<Temperature>,
+}
+
+#[derive(Debug)]
+pub struct NetworkMetrics {
+    pub rx_bytes: u64,
+    pub tx_bytes: u64,
+    pub connections: usize,
+}
+
+#[derive(Debug)]
+pub struct ProcessMetrics {
+    pub pid: u32,
+    pub name: String,
+    pub cpu_usage: f32,
+    pub memory: u64,
+}
+
+#[derive(Debug)]
+pub struct Temperature {
+    pub label: String,
+    pub value: f32,
 } 
