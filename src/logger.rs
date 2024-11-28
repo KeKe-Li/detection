@@ -102,14 +102,14 @@ mod tests {
     #[test]
     fn test_log_rotation() {
         if let Ok(()) = setup_logger() {
-            // 写入足够多的日志以触发轮转
+            // write more than 10MB to trigger log rotation
             for i in 0..10000 {
                 info!("Test log message {}", i);
                 if i % 1000 == 0 {
                     thread::sleep(Duration::from_millis(10));
                 }
             }
-            // 检查是否创建了备份文件
+            // check if backup files are created
             assert!(Path::new(&format!("{}.1.gz", LOG_FILE_PATH)).exists());
         }
     }

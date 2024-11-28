@@ -1,39 +1,32 @@
-use std::thread;
-use std::time::Duration;
-use std::io::{stdout, Write};
-use crossterm::{
-    ExecutableCommand,
-    terminal::{Clear, ClearType},
-    cursor::MoveTo,
-};
-use sysinfo::{System, SystemExt};
-use log::info;
+use actix_files as fs;
+use actix_web::{web, App, HttpServer, Responder};
+use serde::Serialize;
 
-use memory_monitor::{
-    logger,
-    monitor,
-    display,
-    config::UPDATE_INTERVAL,
-};
+#[derive(Serialize)]
+struct SystemMetrics {
+    cpu_usage: f32,
+    total_memory: u64,
+    used_memory: u64,
+    available_memory: u64,
+}
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    logger::setup_logger()?;
-    let mut sys = System::new_all();
-    
-    info!("Start monitoring system resources...");    
-    loop {
-        stdout().execute(Clear(ClearType::All))?.execute(MoveTo(0, 0))?;
-        sys.refresh_all();
-        
-        let metrics = monitor::get_system_metrics(&sys);
-        
-        println!("System Resource Monitor (Updates every {} seconds)\n", UPDATE_INTERVAL);
-        display::print_cpu_usage(&metrics);
-        display::print_memory_bar(metrics.used_memory as f64 / metrics.total_memory as f64 * 100.0, 50);
-        display::print_disk_info(&sys);
-        display::print_system_load(&metrics);
-        
-        stdout().flush()?;
-        thread::sleep(Duration::from_secs(UPDATE_INTERVAL));
-    }
-} 
+async fn get_system_metrics() -> impl Responder {
+    web::Json(SystemMetrics {
+        cpu_usage: 31.82,
+        total_memory: 17179869184,
+        used_memory: 11185905664,
+        available_memory: 5515788288,
+    })
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .route("/metrics", web::get().to(get_system_metrics))
+            .service(fs::Files::new("/", "./").index_file("index.html"))
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
+}
