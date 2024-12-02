@@ -6,7 +6,7 @@ use crate::config::{MEMORY_WARNING_THRESHOLD, MEMORY_CRITICAL_THRESHOLD};
 enum MemoryUsageState {
     Critical(f64),
     Warning(f64),
-    Normal(f64),
+    Normal,
 }
 
 impl From<f64> for MemoryUsageState {
@@ -14,7 +14,7 @@ impl From<f64> for MemoryUsageState {
         match usage {
             u if u >= MEMORY_CRITICAL_THRESHOLD => Self::Critical(u),
             u if u >= MEMORY_WARNING_THRESHOLD => Self::Warning(u),
-            u => Self::Normal(u),
+            _ => Self::Normal,
         }
     }
 }
@@ -33,7 +33,7 @@ pub fn check_memory_usage(usage_percentage: f64) {
                 usage
             );
         }
-        MemoryUsageState::Normal(_) => {
+        MemoryUsageState::Normal => {
             // Memory usage rate is normal
         }
     }

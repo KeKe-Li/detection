@@ -2,6 +2,7 @@ use actix_files as fs;
 use actix_web::{web, App, HttpServer, Responder};
 use serde::Serialize;
 use log::info;
+use std::io;
 
 const CPU_USAGE: f32 = 31.82; 
 const TOTAL_MEMORY: u64 = 17179869184; 
@@ -32,9 +33,14 @@ async fn get_system_metrics() -> impl Responder {
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> io::Result<()> {
     // Initialize logging
-    log4rs::init_file("config/log4rs.yaml", Default::default()).unwrap();
+    log4rs::init_file("config/log4rs.yaml", Default::default())
+        .map_err(|e| {
+            eprintln!("Failed to initialize logging: {}", e);
+            io::Error::new(io::ErrorKind::Other, "Logging initialization failed")
+        })?;
+    
     info!("Starting server at {}", SERVER_ADDRESS);
     
     HttpServer::new(|| {
@@ -42,7 +48,11 @@ async fn main() -> std::io::Result<()> {
             .route("/metrics", web::get().to(get_system_metrics))
             .service(fs::Files::new("/", "./").index_file("index.html"))
     })
-    .bind(SERVER_ADDRESS)?
+    .bind(SERVER_ADDRESS)
+    .map_err(|e| {
+        eprintln!("Failed to bind server: {}", e);
+        io::Error::new(io::ErrorKind::Other, "Server binding failed")
+    })?
     .run()
     .await
 }
