@@ -1,7 +1,13 @@
 use actix_files as fs;
 use actix_web::{web, App, HttpServer, Responder};
-use log::{info, error};
 use serde::Serialize;
+use log::info;
+
+const CPU_USAGE: f32 = 31.82; 
+const TOTAL_MEMORY: u64 = 17179869184; 
+const USED_MEMORY: u64 = 11185905664; 
+const AVAILABLE_MEMORY: u64 = 5515788288; 
+const SERVER_ADDRESS: &str = "127.0.0.1:8080"; 
 
 #[derive(Serialize)]
 struct SystemMetrics {
@@ -11,18 +17,17 @@ struct SystemMetrics {
     available_memory: u64,
 }
 
-// Extract the logic to generate system metrics
 fn generate_system_metrics() -> SystemMetrics {
     SystemMetrics {
-        cpu_usage: 31.82, // constant
-        total_memory: 17179869184, 
-        used_memory: 11185905664, 
-        available_memory: 5515788288, 
+        cpu_usage: CPU_USAGE,
+        total_memory: TOTAL_MEMORY,
+        used_memory: USED_MEMORY,
+        available_memory: AVAILABLE_MEMORY,
     }
 }
 
 async fn get_system_metrics() -> impl Responder {
-    // Use serde_json to return JSON directly
+    info!("Fetching system metrics");
     web::Json(generate_system_metrics())
 }
 
@@ -30,18 +35,14 @@ async fn get_system_metrics() -> impl Responder {
 async fn main() -> std::io::Result<()> {
     // Initialize logging
     log4rs::init_file("config/log4rs.yaml", Default::default()).unwrap();
-    let address = "127.0.0.1:8080"; // Can be read from the configuration file
-    info!("Starting server at {}", address);
+    info!("Starting server at {}", SERVER_ADDRESS);
+    
     HttpServer::new(|| {
         App::new()
             .route("/metrics", web::get().to(get_system_metrics))
             .service(fs::Files::new("/", "./").index_file("index.html"))
     })
-    .bind(address)
-    .map_err(|e| {
-        error!("Failed to bind server: {}", e);
-        e
-    })?
+    .bind(SERVER_ADDRESS)?
     .run()
     .await
 }
