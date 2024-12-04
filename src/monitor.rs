@@ -8,7 +8,7 @@ use std::collections::VecDeque;
 use crate::config::{MEMORY_WARNING_THRESHOLD, MEMORY_CRITICAL_THRESHOLD};
 use serde::Serialize;
 
-const HISTORY_SIZE: usize = 100; // 保存最近100个数据点
+const HISTORY_SIZE: usize = 100; // Store the last 100 data points
 
 #[derive(Debug)]
 pub struct MetricsHistory {
@@ -188,10 +188,10 @@ pub struct DiskMetrics {
 }
 
 pub fn get_detailed_metrics(sys: &mut System) -> DetailedMetrics {
-    // 先刷新所有数据
+    // First refresh all data
     sys.refresh_all();
     
-    // 再获取各项指标
+    // Then collect all metrics
     let basic = get_system_metrics(sys);
     let network = get_network_metrics(sys);
     let processes = get_process_metrics(sys);
@@ -209,7 +209,7 @@ pub fn get_detailed_metrics(sys: &mut System) -> DetailedMetrics {
 }
 
 fn get_disk_metrics(sys: &mut System) -> Vec<DiskMetrics> {
-    sys.refresh_disks();  // 刷新磁盘数据
+    sys.refresh_disks();  // Refresh disk data
     sys.disks().iter().map(|disk| {
         #[cfg(target_os = "linux")]
         let (read_bytes, write_bytes) = {
@@ -218,8 +218,8 @@ fn get_disk_metrics(sys: &mut System) -> Vec<DiskMetrics> {
             let mut buffer = String::new();
             if let Ok(mut file) = File::open("/proc/diskstats") {
                 if file.read_to_string(&mut buffer).is_ok() {
-                    // Parse disk stats
-                    // TODO: 实现具体的解析逻辑
+                    // Parse disk stats from /proc/diskstats
+                    // TODO: Implement parsing logic
                     (0, 0)
                 } else {
                     (0, 0)
