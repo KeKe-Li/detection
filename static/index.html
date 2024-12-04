@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            padding: 20px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #333;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .network-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .network-stat {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Monitor</h1>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>CPU Usage</h3>
+                <div class="metric-value" id="cpu-usage">0%</div>
+                <div class="metric-label">Current CPU Utilization</div>
+            </div>
+            <div class="metric-card">
+                <h3>Memory Usage</h3>
+                <div class="metric-value" id="memory-usage">0%</div>
+                <div class="metric-label">
+                    <span id="memory-details">0 GB / 0 GB</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <h3>Network</h3>
+                <div class="network-stats">
+                    <div class="network-stat">
+                        <div class="metric-label">Received</div>
+                        <div class="metric-value" id="network-rx">0 MB</div>
+                    </div>
+                    <div class="network-stat">
+                        <div class="metric-label">Transmitted</div>
+                        <div class="metric-value" id="network-tx">0 MB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="cpuChart"></canvas>
+            <canvas id="memoryChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function formatBytes(bytes) {
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            let size = bytes;
+            let unitIndex = 0;
+            while (size >= 1024 && unitIndex < units.length - 1) {
+                size /= 1024;
+                unitIndex++;
+            }
+            return `${size.toFixed(2)} ${units[unitIndex]}`;
+        }
+
+        function updateMetrics() {
+            fetch('/api/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    // CPU Usage
+                    const cpuUsage = data.basic.cpu_usage.toFixed(1);
+                    document.getElementById('cpu-usage').textContent = `${cpuUsage}%`;
+                    
+                    // Memory Usage
+                    const totalMemory = data.basic.total_memory;
+                    const usedMemory = data.basic.used_memory;
+                    const memUsage = (usedMemory / totalMemory * 100).toFixed(1);
+                    document.getElementById('memory-usage').textContent = `${memUsage}%`;
+                    document.getElementById('memory-details').textContent = 
+                        `${formatBytes(usedMemory)} / ${formatBytes(totalMemory)}`;
+                    
+                    // Network Stats
+                    document.getElementById('network-rx').textContent = 
+                        formatBytes(data.network.rx_bytes);
+                    document.getElementById('network-tx').textContent = 
+                        formatBytes(data.network.tx_bytes);
+
+                    // Update charts
+                    const timestamp = new Date().toLocaleTimeString();
+                    
+                    updateChart(cpuChart, timestamp, cpuUsage);
+                    updateChart(memoryChart, timestamp, memUsage);
+                });
+        }
+
+        function updateChart(chart, label, value) {
+            chart.data.labels.push(label);
+            chart.data.datasets[0].data.push(value);
+            
+            if (chart.data.labels.length > 30) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            
+            chart.update();
+        }
+
+        // Initialize charts
+        const chartOptions = {
+            responsive: true,
+            animation: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: value => `${value}%`
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        };
+
+        const cpuChart = new Chart(document.getElementById('cpuChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'CPU Usage',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: chartOptions
+        });
+
+        const memoryChart = new Chart(document.getElementById('memoryChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Memory Usage',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: chartOptions
+        });
+
+        // Start updates
+        updateMetrics();
+        setInterval(updateMetrics, 1000);
+    </script>
+</body>
+</html> 
