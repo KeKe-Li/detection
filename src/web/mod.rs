@@ -28,7 +28,7 @@ async fn get_metrics(data: web::Data<Arc<Mutex<AppState>>>) -> impl Responder {
         state.system.refresh_all();
         let metrics = get_detailed_metrics(&mut state.system);
         
-        // 保存历史数据
+        // Save historical data
         state.metrics_history.push(metrics.clone());
         if state.metrics_history.len() > 100 {
             state.metrics_history.remove(0);
