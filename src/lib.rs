@@ -7,6 +7,7 @@ pub mod logger;
 pub mod monitor;
 pub mod storage;
 pub mod utils;
+pub mod web;
 
 // Re-export commonly used items
 pub use config::Config;
