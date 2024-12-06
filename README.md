@@ -5,6 +5,8 @@ server system resource monitoring probe memory tool is a tool used to monitor sy
 
 #### build & run
 
+check the code and run .
+
 ```bash
 > cargo clean
 
