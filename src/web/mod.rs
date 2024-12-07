@@ -64,8 +64,7 @@ pub async fn start_server() -> std::io::Result<()> {
                     .route("/history", web::get().to(get_history))
             )
             .service(fs::Files::new("/", "./static").index_file("index.html"))
-    })
-    .bind("127.0.0.1:8080")?
+    }).bind("127.0.0.1:8080")?
     .run()
     .await
 } 
