@@ -21,8 +21,7 @@ impl MetricsStorage {
     }
 
     pub fn store_metrics(&self, metrics: &SystemMetrics) -> Result<()> {
-        self.conn.execute(
-            "INSERT INTO metrics VALUES (?1, ?2, ?3, ?4)",
+        self.conn.execute("INSERT INTO metrics VALUES (?1, ?2, ?3, ?4)",
             [
                 chrono::Utc::now().timestamp(),
                 (metrics.cpu_usage * 100.0) as i64,
