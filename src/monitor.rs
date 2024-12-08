@@ -129,8 +129,14 @@ impl From<sysinfo::LoadAvg> for LoadAvgWrapper {
 }
 
 pub fn get_system_metrics(sys: &mut System) -> SystemMetrics {
+    // Make sure to refresh all data
     sys.refresh_cpu();
     sys.refresh_memory();
+    sys.refresh_networks();
+    
+    // Add a small delay to allow CPU usage calculation
+    std::thread::sleep(std::time::Duration::from_millis(100));
+    sys.refresh_cpu();
 
     let cpu_usage = sys.global_cpu_info().cpu_usage();
     let total_memory = sys.total_memory();
@@ -267,7 +273,7 @@ fn get_network_metrics(sys: &mut System) -> NetworkMetrics {
     let mut tx_bytes = 0;
     let mut connections = 0;
 
-    for (_interface_name, data) in sys.networks() {
+    for (_name, data) in sys.networks() {
         rx_bytes += data.total_received();
         tx_bytes += data.total_transmitted();
         connections += 1;
@@ -281,11 +287,9 @@ fn get_network_metrics(sys: &mut System) -> NetworkMetrics {
 }
 
 fn get_temperature_metrics(sys: &mut System) -> Vec<Temperature> {
-    sys.components()
-        .iter()
+    sys.components().iter()
         .map(|component| Temperature {
             label: component.label().to_string(),
             value: component.temperature(),
-        })
-        .collect()
+        }).collect()
 } 
