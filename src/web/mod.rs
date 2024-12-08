@@ -28,7 +28,12 @@ async fn get_metrics(data: web::Data<Arc<Mutex<AppState>>>) -> impl Responder {
         state.system.refresh_all();
         let metrics = get_detailed_metrics(&mut state.system);
         
-        // Save historical data
+        // Keep only essential logging
+        // println!("Metrics updated: CPU: {}%, Memory: {}%", 
+        //     metrics.basic.cpu_usage,
+        //     (metrics.basic.used_memory as f64 / metrics.basic.total_memory as f64 * 100.0)
+        // );
+        
         state.metrics_history.push(metrics.clone());
         if state.metrics_history.len() > 100 {
             state.metrics_history.remove(0);
