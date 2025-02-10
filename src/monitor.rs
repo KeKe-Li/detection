@@ -8,7 +8,8 @@ use std::collections::VecDeque;
 use crate::config::{MEMORY_WARNING_THRESHOLD, MEMORY_CRITICAL_THRESHOLD};
 use serde::Serialize;
 
-const HISTORY_SIZE: usize = 100; // Store the last 100 data points
+// Store the last 100 data points
+const HISTORY_SIZE: usize = 100; 
 
 #[derive(Debug)]
 pub struct MetricsHistory {
